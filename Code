@@ -1,0 +1,189 @@
+#include <Adafruit_NeoPixel.h>
+#define PIN  7
+#define N_LEDS 10
+#define PINU 2
+#define N_LEDSU 10
+int win = 1;
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(N_LEDS, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel stripU = Adafruit_NeoPixel(N_LEDSU, PINU, NEO_GRB + NEO_KHZ800);
+int Displayed[3];
+ int Switch[3];
+ int OldValue[3];
+void setup() {
+  strip.begin();
+  strip.show();
+   stripU.begin();
+  stripU.show();
+  Serial.begin(9600);
+  win = 1;
+  delay(500);
+
+}
+void loop() {
+if(win == 1) reset();
+Player();
+if( Check(Displayed, Switch) == true)  YouWin();
+
+
+
+
+}
+
+
+
+void rainbow(int wait) {
+  for(long firstPixelHue = 0; firstPixelHue < 5*65536; firstPixelHue += 256) 
+  {
+    for(int i=0; i<strip.numPixels(); i++) { 
+      int pixelHue = firstPixelHue + (i * 65536L / strip.numPixels());
+      strip.setPixelColor(i, strip.gamma32(strip.ColorHSV(pixelHue)));
+    }
+    strip.show();
+    delay(wait);
+  }
+}
+   boolean Check(int *a, int *b)
+   {
+      int n;
+      for (n=0;n<3;n++)if (a[n]!=b[n])return false;
+      return true;  
+}
+void Strip( int red, int green, int blue)
+{
+    for(int i = 0; i <=N_LEDS; i++)
+   {
+      strip.setPixelColor(i, red,green, blue); 
+        strip.show();
+   }
+}
+void Player()
+{
+  for(int i = 11; i <=13; i++)
+{
+if(digitalRead(i) == HIGH)
+{
+  Switch[i-11] = 255;
+}
+else if(digitalRead(i) == LOW)
+{
+  Switch[i-11] = 0;
+}
+}
+for(int x = 0; x <=N_LEDSU; x++)
+   {
+      stripU.setPixelColor(x, Switch[0],Switch[1],Switch[2]); 
+        stripU.show();
+   }
+}
+
+
+void User(int red, int green, int blue)
+{
+  for(int x = 0; x <=N_LEDSU; x++)
+   {
+      stripU.setPixelColor(x, red,green,blue); 
+        stripU.show();
+   }
+}
+
+
+void ranset()
+{
+ for(int i; i <= 3; i++)
+{
+  int ranval = random(0,2);
+  if(ranval == 1) Displayed[i] = 255;
+else Displayed[i] = ranval;
+}
+while (Check(Displayed, OldValue) == true)  ranset();
+
+while (AllZero(Displayed) == true) ranset();
+}
+void reset(){
+ranset();
+Starting();
+Strip(Displayed[0],Displayed[1],Displayed[2]);
+win = 0;}
+void copy(int* src, int* dst, int len)
+{memcpy(dst, src, sizeof(src[0])*len);}
+
+
+boolean AllZero(int* arr)
+{
+ int Zeros = 0;
+  for (int i = 0; i < 3; i++)
+  {
+    if (arr[i] == 0)
+    {
+      Zeros++;
+    }
+    }
+    
+  if (Zeros == 3)
+  {
+    return true;
+  }
+  return false;
+  }
+
+
+  
+void YouWin(){
+  copy(Displayed,OldValue, 3);
+delay(1000);
+rainbow(0.75);
+Ending();
+
+win = 1;
+
+}
+
+void Starting()
+{
+
+  
+Strip(255, 0, 0);
+User(255,0,0);
+play(523, 150);
+Strip(0,255,0);
+User(0,255,0);
+play(392, 150);
+Strip(0,0,255);
+User(0,0,255);
+play(330, 150);
+Strip(255,255,255);
+User(255,255,255);
+play(262, 350);
+delay(100);
+play(659, 150);
+play(659, 300);
+}
+
+
+void Ending()
+{
+
+  
+Strip(255, 0, 255);
+User(0,255,0);
+play(262, 150);
+Strip(0,255,255);
+User(255,0,0);
+play(330, 150);
+Strip(255,255,0);
+User(0,0,255);
+play(392, 150);
+Strip(255,255,255);
+User(255,255,255);
+play(523, 150);
+}
+
+
+
+void play(int hz, int hold)
+{
+   tone(4, hz);
+ delay(hold);
+ noTone(4);
+ delay(50);
+}
